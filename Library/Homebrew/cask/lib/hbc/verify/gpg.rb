@@ -1,8 +1,10 @@
+require "formula"
+
 module Hbc
   module Verify
     class Gpg
       def self.me?(cask)
-        cask.gpg
+        !cask.gpg.nil?
       end
 
       attr_reader :cask, :downloaded_path
@@ -13,51 +15,60 @@ module Hbc
         @downloaded_path = downloaded_path
       end
 
-      def available?
-        return @available unless @available.nil?
-        @available = self.class.me?(cask) && installed?
-      end
-
       def installed?
-        cmd = @command.run("/usr/bin/type",
-                           args: ["-p", "gpg"])
-
-        # if `gpg` is found, return its absolute path
-        cmd.success? ? cmd.stdout : false
+        Formula["gnupg"].any_version_installed?
       end
 
-      def fetch_sig(force = false)
-        unversioned_cask = cask.version.is_a?(Symbol)
-        cached = cask.metadata_subdir("gpg") unless unversioned_cask
+      def fetch_sig(_force = false)
+        url = cask.gpg.signature
 
-        meta_dir = cached || cask.metadata_subdir("gpg", :now, true)
-        sig_path = meta_dir.join("signature.asc")
+        signature_filename = "#{Digest::SHA2.hexdigest(url.to_s)}.asc"
+        signature_file = Hbc.cache/signature_filename
 
-        curl_download cask.gpg.signature, to: sig_path unless cached || force
+        unless signature_file.exist?
+          ohai "Fetching GPG signature '#{cask.gpg.signature}'."
+          curl_download cask.gpg.signature, to: signature_file
+        end
 
-        sig_path
+        FileUtils.ln_sf signature_filename, Hbc.cache/"#{cask.token}--#{cask.version}.asc"
+
+        signature_file
       end
 
       def import_key
         args = if cask.gpg.key_id
-          ["--recv-keys", cask.gpg.key_id]
+          ["--receive-keys", cask.gpg.key_id]
         elsif cask.gpg.key_url
-          ["--fetch-key", cask.gpg.key_url.to_s]
+          ["--fetch-keys", cask.gpg.key_url.to_s]
         end
 
-        @command.run!("gpg", args: args)
+        @command.run!(Formula["gnupg"].opt_bin/"gpg", args: args, print_stderr: false)
       end
 
       def verify
-        return unless available? && cask.gpg.signature != :embedded
+        unless installed?
+          ohai "Formula 'gnupg' is not installed, skipping verification of GPG signature for Cask '#{cask}'."
+          return
+        end
+
+        if cask.gpg.signature == :embedded
+          ohai "Skipping verification of embedded GPG signature for Cask '#{cask}'."
+          return
+        end
+
+        if cask.gpg.signature.is_a?(Pathname)
+          ohai "Skipping verification of GPG signature included in container for Cask '#{cask}'."
+          return
+        end
+
         import_key
         sig = fetch_sig
 
-        ohai "Verifying GPG signature for #{cask}"
+        ohai "Verifying GPG signature for Cask '#{cask}'."
 
-        @command.run!("gpg",
+        @command.run!(Formula["gnupg"].opt_bin/"gpg",
                       args:         ["--verify", sig, downloaded_path],
-                      print_stdout: true)
+                      print_stderr: false)
       end
     end
   end

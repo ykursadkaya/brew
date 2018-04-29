@@ -7,8 +7,8 @@ module Hbc
 
     def verifications
       [
-        Hbc::Verify::Checksum
-        # TODO: Hbc::Verify::Gpg
+        Hbc::Verify::Checksum,
+        Hbc::Verify::Gpg,
       ]
     end
 

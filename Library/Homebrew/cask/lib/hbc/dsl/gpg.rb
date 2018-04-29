@@ -14,7 +14,16 @@ module Hbc
 
       def initialize(signature, parameters = {})
         @parameters = parameters
-        @signature = URI(signature) unless signature == :embedded
+
+        @signature = case signature
+        when :embedded
+          nil
+        when URI::DEFAULT_PARSER.make_regexp
+          URI(signature)
+        else
+          Pathname(signature)
+        end
+
         parameters.each do |hkey, hvalue|
           raise "invalid 'gpg' parameter: '#{hkey.inspect}'" unless VALID_PARAMETERS.include?(hkey)
           writer_method = "#{hkey}=".to_sym
