@@ -42,7 +42,7 @@ module Hbc
           ["--fetch-keys", cask.gpg.key_url.to_s]
         end
 
-        @command.run!(Formula["gnupg"].opt_bin/"gpg", args: args, print_stderr: false)
+        gpg(args: args, print_stderr: false)
       end
 
       def verify
@@ -66,9 +66,11 @@ module Hbc
 
         ohai "Verifying GPG signature for Cask '#{cask}'."
 
-        @command.run!(Formula["gnupg"].opt_bin/"gpg",
-                      args:         ["--verify", sig, downloaded_path],
-                      print_stderr: false)
+        gpg(args: ["--verify", sig, downloaded_path], print_stderr: false)
+      end
+
+      def gpg(args: [], **options)
+        @command.run!(Formula["gnupg"].opt_bin/"gpg", args: ["--no-default-keyring", "--keyring", "homebrew-keyring.gpg", *args], **options)
       end
     end
   end
