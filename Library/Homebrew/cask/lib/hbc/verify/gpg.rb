@@ -70,7 +70,8 @@ module Hbc
       end
 
       def gpg(args: [], **options)
-        @command.run!(Formula["gnupg"].opt_bin/"gpg", args: ["--no-default-keyring", "--keyring", "homebrew-keyring.gpg", *args], **options)
+        (HOMEBREW_CACHE/"gpg").mkpath
+        @command.run!(Formula["gnupg"].opt_bin/"gpg", args: ["--no-default-keyring", "--keyring", HOMEBREW_CACHE/"gpg/homebrew-keyring.gpg", *args], **options)
       end
     end
   end
