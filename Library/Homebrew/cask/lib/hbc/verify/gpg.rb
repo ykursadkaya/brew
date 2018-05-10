@@ -35,16 +35,6 @@ module Hbc
         signature_file
       end
 
-      def import_key
-        args = if cask.gpg.key_id
-          ["--receive-keys", cask.gpg.key_id]
-        elsif cask.gpg.key_url
-          ["--fetch-keys", cask.gpg.key_url.to_s]
-        end
-
-        gpg(args: args, print_stderr: false)
-      end
-
       def verify
         unless installed?
           ohai "Formula 'gnupg' is not installed, skipping verification of GPG signature for Cask '#{cask}'."
@@ -61,17 +51,30 @@ module Hbc
           return
         end
 
-        import_key
+        homebrew_keyring_path = (HOMEBREW_CACHE/"gpg/homebrew-keyring.gpg").tap do |path|
+          path.dirname.mkpath
+        end
+
+        homebrew_keyring_args = ["--no-default-keyring", "--keyring", homebrew_keyring_path]
+
+        # Ensure GPG installation is initialized.
+        gpg(args: ["--list-keys"], print_stderr: false)
+
+        if cask.gpg.key_id
+          gpg(args: [*homebrew_keyring_args, "--receive-keys", cask.gpg.key_id], print_stderr: false)
+        elsif cask.gpg.key_url
+          gpg(args: [*homebrew_keyring_args, "--fetch-keys", cask.gpg.key_url.to_s], print_stderr: false)
+        end
+
         sig = fetch_sig
 
         ohai "Verifying GPG signature for Cask '#{cask}'."
 
-        gpg(args: ["--verify", sig, downloaded_path], print_stderr: false)
+        gpg(args: [*homebrew_keyring_args, "--verify", sig, downloaded_path], print_stderr: false)
       end
 
       def gpg(args: [], **options)
-        (HOMEBREW_CACHE/"gpg").mkpath
-        @command.run!(Formula["gnupg"].opt_bin/"gpg", args: ["--no-default-keyring", "--keyring", HOMEBREW_CACHE/"gpg/homebrew-keyring.gpg", *args], **options)
+        @command.run!(Formula["gnupg"].opt_bin/"gpg", args: args, **options)
       end
     end
   end
