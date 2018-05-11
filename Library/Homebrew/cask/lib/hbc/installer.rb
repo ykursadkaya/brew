@@ -21,8 +21,6 @@ module Hbc
     include Staged
     include Verify
 
-    PERSISTENT_METADATA_SUBDIRS = ["gpg"].freeze
-
     def initialize(cask, command: SystemCommand, force: false, skip_cask_deps: false, binaries: true, verbose: false, require_sha: false, upgrade: false, installed_as_dependency: false)
       @cask = cask
       @command = command
@@ -487,9 +485,7 @@ module Hbc
       # Homebrew-Cask metadata
       if backup_metadata_path.directory?
         backup_metadata_path.children.each do |subdir|
-          unless PERSISTENT_METADATA_SUBDIRS.include?(subdir.basename)
-            gain_permissions_remove(subdir)
-          end
+gain_permissions_remove(subdir)
         end
       end
       backup_metadata_path.rmdir_if_possible
@@ -505,9 +501,7 @@ module Hbc
       if @cask.metadata_versioned_path.respond_to?(:children) &&
          @cask.metadata_versioned_path.exist?
         @cask.metadata_versioned_path.children.each do |subdir|
-          unless PERSISTENT_METADATA_SUBDIRS.include?(subdir.basename)
-            gain_permissions_remove(subdir)
-          end
+          gain_permissions_remove(subdir)
         end
       end
       @cask.metadata_versioned_path.rmdir_if_possible
