@@ -416,7 +416,7 @@ class Formula
   def aliases
     @aliases ||= if tap
       tap.alias_reverse_table[full_name].to_a.map do |a|
-        a.split("/")[-1]
+        a.split("/").last
       end
     else
       []
@@ -1370,7 +1370,7 @@ class Formula
   # an array of all {Formula} names
   # @private
   def self.names
-    @names ||= (core_names + tap_names.map { |name| name.split("/")[-1] }).uniq.sort
+    @names ||= (core_names + tap_names.map { |name| name.split("/").last }).uniq.sort
   end
 
   # an array of all {Formula} files
@@ -1461,7 +1461,7 @@ class Formula
   # an array of all aliases
   # @private
   def self.aliases
-    @aliases ||= (core_aliases + tap_aliases.map { |name| name.split("/")[-1] }).uniq.sort
+    @aliases ||= (core_aliases + tap_aliases.map { |name| name.split("/").last }).uniq.sort
   end
 
   # an array of all aliases, , which the tap formulae have the fully-qualified name
