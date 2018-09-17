@@ -1,10 +1,11 @@
+require "active_support/core_ext/numeric/time"
 require "utils/bottles"
 require "formula"
 require "cask/cask_loader"
 require "set"
 
 module CleanupRefinement
-  LATEST_CASK_DAYS = 7
+  LATEST_CASK_OUTDATED = 7.days.ago
 
   refine Enumerator do
     def parallel
@@ -51,8 +52,7 @@ module CleanupRefinement
 
       return true if symlink? && !exist?
 
-      # TODO: Replace with ActiveSupport's `.days.ago`.
-      mtime < ((@time ||= Time.now) - days * 60 * 60 * 24)
+      mtime < days.days.ago
     end
 
     def stale?(scrub = false)
@@ -123,10 +123,7 @@ module CleanupRefinement
 
       return true if scrub && !cask.versions.include?(cask.version)
 
-      if cask.version.latest?
-        # TODO: Replace with ActiveSupport's `.days.ago`.
-        return mtime < ((@time ||= Time.now) - LATEST_CASK_DAYS * 60 * 60 * 24)
-      end
+      return mtime < LATEST_CASK_OUTDATED if cask.version.latest?
 
       false
     end
