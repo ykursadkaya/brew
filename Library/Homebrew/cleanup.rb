@@ -1,4 +1,3 @@
-require "active_support/core_ext/numeric/time"
 require "utils/bottles"
 require "formula"
 require "cask/cask_loader"
