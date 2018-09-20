@@ -184,6 +184,7 @@ module Cask
           tap.cask_files.count
         rescue
           add_error "Unable to read from Tap: #{tap.path}"
+          0
         end
 
         "#{cask_count} #{"cask".pluralize(cask_count)}"
