@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
-gem "activesupport"
+# Use specific commit of `activesupport` which includes https://github.com/rails/rails/pull/34037.
+gem "activesupport", git: "https://github.com/rails/rails", branch: "5-2-stable", ref: "6238156b405c81912e15b72b909a8d72bd851d56"
 gem "concurrent-ruby"
 gem "backports"
 gem "plist"
