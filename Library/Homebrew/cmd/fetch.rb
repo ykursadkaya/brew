@@ -126,7 +126,6 @@ module Homebrew
         cask = formula_or_cask
 
         options = {
-          force:      args.force?,
           quarantine: args.quarantine?,
         }.compact
 
