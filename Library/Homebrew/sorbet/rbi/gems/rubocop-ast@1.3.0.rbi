@@ -1116,6 +1116,8 @@ RuboCop::AST::NodePattern::LexerRex::IDENTIFIER = T.let(T.unsafe(nil), Regexp)
 class RuboCop::AST::NodePattern::LexerRex::LexerError < ::StandardError
 end
 
+RuboCop::AST::NodePattern::LexerRex::NODE_TYPE = T.let(T.unsafe(nil), Regexp)
+
 RuboCop::AST::NodePattern::LexerRex::REGEXP = T.let(T.unsafe(nil), Regexp)
 
 RuboCop::AST::NodePattern::LexerRex::REGEXP_BODY = T.let(T.unsafe(nil), Regexp)
